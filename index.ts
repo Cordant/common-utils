@@ -1,4 +1,5 @@
 import {ProcessPayload} from './database/index';
+import {Responses} from './api';
 import {Logger} from './logger';
 
 export interface LambdaEvent extends ProcessPayload {
@@ -12,7 +13,7 @@ export interface LambdaEvent extends ProcessPayload {
   body: string;
   pathParameters: {
     [key: string]: string;
-  }
+  };
 }
 
 export interface LambdaContext {
@@ -32,12 +33,15 @@ export interface LambdaReturn extends AnyValue {
 
 type LambdaFunction = (event: LambdaEvent, context?: LambdaContext, callback?: LambdaCallback) => Promise<LambdaReturn>;
 
+/**
+ * @description Checks for the Warm-Up flag and ensures the function is only called if it not a warm-up call.
+ */
 export const createLambda = (lambdaFunction: LambdaFunction) => {
   return async (event: LambdaEvent, context?: LambdaContext, callback?: LambdaCallback): Promise<LambdaReturn> => {
     if (!!event.wu) {
       Logger.log('Function Warm Up called! Skipping calling actual function!');
-      return {statusCode: 200, body: 'Function warmed up successfully!'};
+      return Responses.success('Function warmed up successfully!');
     }
     return lambdaFunction(event, context, callback);
   };
-}
+};
