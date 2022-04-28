@@ -2,22 +2,45 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Validate = void 0;
 const index_1 = require("../logger/index");
+/**
+ * @description This class is used to ensure that parameters passed has the required value and type.
+ */
 class Validate {
+    /**
+     * @description Ensures that a string is received.
+     * @param arg The value to test.
+     * @param name The name of the value. if the variable that you passed is named userDetails, this value should be a string with 'userDetails'.
+     */
     static string(arg, name) {
         index_1.Logger.verbose('Validate.string');
         Validate.parameters([arg, name], 2);
         Validate.type(arg, 'string', name);
     }
+    /**
+     * @description Ensures that an object is received.
+     * @param arg The value to test.
+     * @param name The name of the value. if the variable that you passed is named userDetails, this value should be a string with 'userDetails'.
+     */
     static object(arg, name) {
         index_1.Logger.verbose('Validate.object');
         Validate.parameters([arg, name], 2);
         Validate.type(arg, 'object', name);
     }
+    /**
+     * @description Ensures that a number is received.
+     * @param arg The value to test.
+     * @param name The name of the value. if the variable that you passed is named userDetails, this value should be a string with 'userDetails'.
+     */
     static number(arg, name) {
         index_1.Logger.verbose('Validate.number');
         Validate.parameters([arg, name], 2);
         Validate.type(arg, 'number', name);
     }
+    /**
+     * @description Ensures that a boolean is received.
+     * @param arg The value to test.
+     * @param name The name of the value. if the variable that you passed is named userDetails, this value should be a string with 'userDetails'.
+     */
     static boolean(arg, name) {
         index_1.Logger.verbose('Validate.boolean');
         Validate.parameters([arg, name], 2);

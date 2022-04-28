@@ -28,7 +28,35 @@ const database_1 = require("../database");
 const responses_1 = require("./responses");
 const logger_1 = require("../logger");
 const payload_1 = require("./payload");
+/**
+ * @description This is a wrapper class for the Database class from [`common-utils/database`](https://github.com/Cordant/common-utils/blob/master/database/index.ts) intended to be used for the APIs.
+ * It maps the LambdaEvent received based on the API method and passes it as an object to the Database.
+ */
 class Database {
+    /**
+     * @description Calls the read/write database.
+     *
+     * ```typescript
+     * const {Database} = require('common-utils/api');
+     *
+     * Database.process(
+     *   event,
+     *   functionName,
+     *   fieldsToPass,
+     *   'Success Message',
+     *   'Failed Message',
+     *   options, // Optional
+     * ).then(data => {...Bunch of code...})
+     *  .catch(err => {...Bunch of code...})
+     * ```
+     *
+     * @param event This is the value receive from the lambda directly.
+     * @param functionName The name of the database stored procedure to call.
+     * @param fieldsToPass The fields from the event that should be passed to the stored procedure. This order of the item in the list must match the order of the stored procedure parameters. Please note that the user id is always passed as the first argument and therefore must not be included on this list.
+     * @param successMessage A user-friendly message that will be displayed to the end user when this call succeeds.
+     * @param errorMessage A user-friendly message that will be displayed to the end if this call fails.
+     * @param options An optional set of parameters that can be passed to the database. See [ProcessOptions](https://github.com/Cordant/common-utils/blob/master/api/index.ts#L7) for more details
+     */
     static process(event, functionName, fieldsToPass, successMessage, errorMessage, options) {
         return __awaiter(this, void 0, void 0, function* () {
             logger_1.Logger.verbose('APIDatabase.process');
@@ -47,6 +75,30 @@ class Database {
             }
         });
     }
+    /**
+     * @description Calls the read only database.
+     *
+     * ```typescript
+     * const {Database} = require('common-utils/api');
+     *
+     * Database.processReadOnly(
+     *   event,
+     *   functionName,
+     *   fieldsToPass,
+     *   'Success Message',
+     *   'Failed Message',
+     *   options, // Optional
+     * ).then(data => {...Bunch of code...})
+     *  .catch(err => {...Bunch of code...})
+     * ```
+     *
+     * @param event This is the value receive from the lambda directly.
+     * @param functionName The name of the database stored procedure to call.
+     * @param fieldsToPass The fields from the event that should be passed to the stored procedure. This order of the item in the list must match the order of the stored procedure parameters. Please note that the user id is always passed as the first argument and therefore must not be included on this list.
+     * @param successMessage A user-friendly message that will be displayed to the end user when this call succeeds.
+     * @param errorMessage A user-friendly message that will be displayed to the end if this call fails.
+     * @param options An optional set of parameters that can be passed to the database. See [ProcessOptions](https://github.com/Cordant/common-utils/blob/master/api/index.ts#L7) for more details
+     */
     static processReadOnly(event, functionName, fieldsToPass, successMessage, errorMessage, options) {
         return __awaiter(this, void 0, void 0, function* () {
             logger_1.Logger.verbose('APIDatabase.processReadOnly');
@@ -65,6 +117,13 @@ class Database {
             }
         });
     }
+    /**
+     * @description Tries to identify if the error is coming from an AWS Service and though and error based on the status code, otherwise return error as internal error (status code 500).
+     *
+     * @param error The error object received from the catch statement.
+     * @param errorMessage A user-friendly error message that will be passed to the user in the frontend.
+     * @private
+     */
     static handleError(error, errorMessage) {
         var _a;
         logger_1.Logger.verbose('APIDatabase.handleError');

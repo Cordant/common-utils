@@ -24,5 +24,14 @@ export interface LambdaReturn extends AnyValue {
     body: string;
 }
 declare type LambdaFunction = (event: LambdaEvent, context?: LambdaContext, callback?: LambdaCallback) => Promise<LambdaReturn>;
+/**
+ * @description Checks for the Warm-Up flag and ensures the function is only called if it not a warm-up call. It also handles any unexpect error.
+ *
+ * ```typescript
+ * module.exports.handler = createLambda(async (event) => {
+ *  ... Lambda Code ...
+ * });
+ * ```
+ */
 export declare const createLambda: (lambdaFunction: LambdaFunction) => (event: LambdaEvent, context?: LambdaContext | undefined, callback?: Function | undefined) => Promise<LambdaReturn>;
 export {};

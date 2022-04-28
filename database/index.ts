@@ -43,7 +43,7 @@ export interface ProcessPayload {
   /**
    * @deprecated Deprecated in favour of `options.userId`
    */
-  federatedIdentityId: string;
+  federatedIdentityId?: string;
 
   [key: string]: any;
 }
@@ -56,6 +56,18 @@ export class Database {
 
   /**
    * @description Calls the read/write database.
+   *
+   * ```javascript
+   * const {Database} = require('common-utils/database');
+   *
+   * Database.process(
+   *   event,
+   *   functionName,
+   *   fieldsToPass,
+   *   options, // Optional
+   * ).then(data => {...Bunch of code...})
+   *  .catch(err => {...Bunch of code...})
+   * ```
    *
    * @param payload The object that the data will be extracted from.
    * @param functionName The name of the database stored procedure to call.
@@ -78,6 +90,18 @@ export class Database {
 
   /**
    * @description Calls the read only database.
+   *
+   * ```javascript
+   * const {Database} = require('common-utils/database');
+   *
+   * Database.processReadOnly(
+   *   event,
+   *   functionName,
+   *   fieldsToPass,
+   *   options, // Optional
+   * ).then(data => {...Bunch of code...})
+   *  .catch(err => {...Bunch of code...})
+   * ```
    *
    * @param payload The object that the data will be extracted from.
    * @param functionName The name of the database stored procedure to call.
