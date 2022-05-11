@@ -1,29 +1,7 @@
-import { ProcessPayload } from './database/index';
-export interface LambdaEvent extends ProcessPayload {
-    httpMethod: string | 'GET' | 'PUT' | 'POST';
-    headers: {
-        [key: string]: string;
-    };
-    queryStringParameters: {
-        [key: string]: string;
-    };
-    body: string;
-    pathParameters: {
-        [key: string]: string;
-    };
-}
-export interface LambdaContext {
-    [key: string]: any;
-}
-export declare type LambdaCallback = Function;
-interface AnyValue {
-    [key: string]: any;
-}
-export interface LambdaReturn extends AnyValue {
-    statusCode: number;
-    body: string;
-}
-declare type LambdaFunction = (event: LambdaEvent, context?: LambdaContext, callback?: LambdaCallback) => Promise<LambdaReturn>;
+import { ProcessPayload } from './database';
+import { Responses } from './api';
+import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
+export declare type LambdaEvent = APIGatewayProxyEvent & ProcessPayload;
 /**
  * @description Checks for the Warm-Up flag and ensures the function is only called if it not a warm-up call. It also handles any unexpect error.
  *
@@ -33,5 +11,4 @@ declare type LambdaFunction = (event: LambdaEvent, context?: LambdaContext, call
  * });
  * ```
  */
-export declare const createLambda: (lambdaFunction: LambdaFunction) => (event: LambdaEvent, context?: LambdaContext | undefined, callback?: Function | undefined) => Promise<LambdaReturn>;
-export {};
+export declare const createLambda: <TEvent = LambdaEvent, TOutput = Responses>(handler: Handler<TEvent, TOutput>) => Responses | Handler<TEvent, TOutput>;

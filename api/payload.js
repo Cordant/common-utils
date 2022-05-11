@@ -18,9 +18,9 @@ class Payload {
      * All other methods are defaulted to API path, query parameter and body. Although using other methods should be avoided!
      */
     static fromMethod(event) {
-        logger_1.Logger.verbose('Payload.fromMethod');
-        logger_1.Logger.verbose('Determining payload from httpMethod!');
-        logger_1.Logger.debug('Mapping payload for method:', event.httpMethod);
+        logger_1.Logger.internal.verbose('Payload.fromMethod');
+        logger_1.Logger.internal.verbose('Determining payload from httpMethod!');
+        logger_1.Logger.internal.debug('Mapping payload for method:', event.httpMethod);
         switch (event.httpMethod) {
             case 'PUT':
             case 'POST':
@@ -37,13 +37,13 @@ class Payload {
      * @description Maps all items from `event.body` to an object.
      */
     static fromBody(event) {
-        logger_1.Logger.verbose('Payload.fromBody');
-        logger_1.Logger.verbose('Checking event.body for nulls!');
+        logger_1.Logger.internal.verbose('Payload.fromBody');
+        logger_1.Logger.internal.verbose('Checking event.body for nulls!');
         if (!event.body) {
-            logger_1.Logger.verbose('event.body is null, returning empty object!');
+            logger_1.Logger.internal.verbose('event.body is null, returning empty object!');
             return {};
         }
-        logger_1.Logger.verbose('Parsing data and returning values!');
+        logger_1.Logger.internal.verbose('Parsing data and returning values!');
         return JSON.parse(event.body);
     }
     /**
@@ -53,7 +53,7 @@ class Payload {
      *
      */
     static fromPath(event) {
-        logger_1.Logger.verbose('Payload.fromPathParams');
+        logger_1.Logger.internal.verbose('Payload.fromPathParams');
         return Payload.determineTypes(event.pathParameters);
     }
     /**
@@ -63,44 +63,45 @@ class Payload {
      *
      */
     static fromQueryParams(event) {
-        logger_1.Logger.verbose('Payload.fromQueryParams');
+        logger_1.Logger.internal.verbose('Payload.fromQueryParams');
         return Payload.determineTypes(event.queryStringParameters);
     }
     static determineTypes(payload) {
-        logger_1.Logger.verbose('Payload.determineTypes');
-        logger_1.Logger.verbose('Checking payload for nulls');
+        var _a;
+        logger_1.Logger.internal.verbose('Payload.determineTypes');
+        logger_1.Logger.internal.verbose('Checking payload for nulls');
         if (!payload) {
-            logger_1.Logger.verbose('Payload is null returning empty object!');
+            logger_1.Logger.internal.verbose('Payload is null returning empty object!');
             return {};
         }
-        logger_1.Logger.verbose('Creating object to add the data');
+        logger_1.Logger.internal.verbose('Creating object to add the data');
         const result = {};
-        logger_1.Logger.verbose('Adding data to object');
+        logger_1.Logger.internal.verbose('Adding data to object');
         for (const key in payload) {
             if (payload.hasOwnProperty(key)) {
-                logger_1.Logger.verbose('Adding new data!');
-                result[key] = Payload.determineType(payload[key]);
+                logger_1.Logger.internal.verbose('Adding new data!');
+                result[key] = Payload.determineType((_a = payload[key]) !== null && _a !== void 0 ? _a : null);
             }
         }
-        logger_1.Logger.verbose('Returning mapped data!');
+        logger_1.Logger.internal.verbose('Returning mapped data!');
         return result;
     }
     static determineType(value) {
-        logger_1.Logger.verbose('Payload.determineType');
-        logger_1.Logger.verbose('Checking null');
-        if (value === 'null') {
+        logger_1.Logger.internal.verbose('Payload.determineType');
+        logger_1.Logger.internal.verbose('Checking null');
+        if (value === 'null' || value === null) {
             return null;
         }
-        logger_1.Logger.verbose('Checking undefined');
+        logger_1.Logger.internal.verbose('Checking undefined');
         if (value === 'undefined') {
             return undefined;
         }
         try {
-            logger_1.Logger.verbose('Trying to parse!');
+            logger_1.Logger.internal.verbose('Trying to parse!');
             return JSON.parse(value);
         }
         catch (e) {
-            logger_1.Logger.verbose('Failed to parse, returning as a string!');
+            logger_1.Logger.internal.verbose('Failed to parse, returning as a string!');
             return value;
         }
     }
