@@ -20,6 +20,12 @@ export interface AddParameterOptions {
      */
     convertToBase64?: boolean;
 }
+export interface GetParametersByPathOptions {
+    /**
+     * @default false
+     */
+    recursive?: boolean;
+}
 /**
  * @description A helper class to retrieve an SSM parameter based on stages. It ensures that the standard format for the parameter is correct.
  */
@@ -35,5 +41,10 @@ export declare class SSM {
     static getParameter(app: string, parameter: string, options?: GetParameterOptions): Promise<string>;
     static addParameter(app: string, parameter: string, value: {
         [key: string]: any;
-    } | string | number, options?: AddParameterOptions): Promise<void>;
+    } | string | number, key: string, options?: AddParameterOptions): Promise<void>;
+    static getParametersByPath(app: string, parameter: string, options?: GetParametersByPathOptions): Promise<{
+        [key: string]: any;
+    }>;
+    static deleteParameter(app: string, parameter: string): Promise<void>;
+    private static buildParameter;
 }

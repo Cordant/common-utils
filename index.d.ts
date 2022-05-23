@@ -12,3 +12,4 @@ export declare type LambdaEvent = APIGatewayProxyEvent & ProcessPayload;
  * ```
  */
 export declare const createLambda: <TEvent = LambdaEvent, TOutput = Responses>(handler: Handler<TEvent, TOutput>) => Responses | Handler<TEvent, TOutput>;
+export * from './ssm';
