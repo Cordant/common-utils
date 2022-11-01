@@ -23,8 +23,9 @@ var LogType;
  */
 class Logger {
     constructor() {
-        this.isInternal = false;
         this.type = LogType.log;
+        this.isInternal = false;
+        this.shouldTraceGlobally = false;
         this.traces = [];
         this.logTypesToTrack = [
             LogType.log,
@@ -40,6 +41,7 @@ class Logger {
     static setConfig({ globalTrace = false, logTypesToTrack }) {
         Logger.isSingleton = globalTrace;
         const logger = Logger.getInstance();
+        logger.shouldTraceGlobally = globalTrace;
         if (logTypesToTrack) {
             logger.logTypesToTrack = logTypesToTrack;
         }

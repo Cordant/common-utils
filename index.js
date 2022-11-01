@@ -90,7 +90,7 @@ function createLambda(handler, errorHandler) {
         }
         finally {
             logger_1.Logger.log('END');
-            if (hasError) {
+            if (hasError && logger_1.Logger.getInstance().shouldTraceGlobally) {
                 logger_1.Logger.logTrace();
             }
         }

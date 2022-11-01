@@ -18,13 +18,14 @@ export interface LoggerConfig {
 export declare class Logger {
     private static instance;
     private static isSingleton;
-    isInternal: boolean;
     type: LogType;
+    isInternal: boolean;
+    shouldTraceGlobally: boolean;
     traces: {
         type: LogType;
         message: string;
     }[];
-    private logTypesToTrack;
+    logTypesToTrack: LogType[];
     static setConfig({ globalTrace, logTypesToTrack }: LoggerConfig): void;
     static getInstance(): Logger;
     /**
