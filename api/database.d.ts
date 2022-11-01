@@ -1,6 +1,6 @@
 import { ProcessOptions as InternalProcessOptions } from '../database';
 import { LambdaEvent } from '../index';
-import { Response } from './responses';
+import { Responses } from './responses';
 /**
  * @description An optional set of parameters that can be passed to the Database.
  */
@@ -35,7 +35,7 @@ export declare class Database {
      * @param errorMessage A user-friendly message that will be displayed to the end if this call fails.
      * @param options An optional set of parameters that can be passed to the database. See [ProcessOptions](https://github.com/Cordant/common-utils/blob/master/api/index.ts#L7) for more details
      */
-    static process(event: LambdaEvent, functionName: string, fieldsToPass: string[], successMessage: string, errorMessage: string, options?: ProcessOptions): Promise<Response>;
+    static process(event: LambdaEvent, functionName: string, fieldsToPass: string[], successMessage: string, errorMessage: string, options?: ProcessOptions): Promise<Responses>;
     /**
      * @description Calls the read only database.
      *
@@ -60,7 +60,7 @@ export declare class Database {
      * @param errorMessage A user-friendly message that will be displayed to the end if this call fails.
      * @param options An optional set of parameters that can be passed to the database. See [ProcessOptions](https://github.com/Cordant/common-utils/blob/master/api/index.ts#L7) for more details
      */
-    static processReadOnly(event: LambdaEvent, functionName: string, fieldsToPass: string[], successMessage: string, errorMessage: string, options: ProcessOptions): Promise<Response>;
+    static processReadOnly(event: LambdaEvent, functionName: string, fieldsToPass: string[], successMessage: string, errorMessage: string, options: ProcessOptions): Promise<Responses>;
     /**
      * @description Tries to identify if the error is coming from an AWS Service and though and error based on the status code, otherwise return error as internal error (status code 500).
      *

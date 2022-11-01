@@ -154,7 +154,7 @@ class Database {
                 params.push(payload[fieldsToPass[i]]);
             }
             index_2.Logger.internal.verbose('Calling function with functionName and params!');
-            index_2.Logger.internal.debug(functionName, params);
+            index_2.Logger.log(functionName, params);
             let data = yield db.func(functionName, params);
             index_2.Logger.internal.verbose('Function returned successfully!');
             index_2.Logger.internal.verbose('Formatting return value!');

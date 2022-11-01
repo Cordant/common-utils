@@ -117,6 +117,10 @@ class StatusCode {
                 return 'Service Unavailable';
             case 504:
                 return 'Gateway Timeout';
+            case 505:
+                return 'HTTP Version Not Supported';
+            case 506:
+                return 'Variant Also Negotiates';
             case 507:
                 return 'Insufficient Storage';
             case 508:

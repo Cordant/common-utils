@@ -24,13 +24,13 @@ class Payload {
         switch (event.httpMethod) {
             case 'PUT':
             case 'POST':
-                return Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromBody(event));
+                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromBody(event)), false);
             case 'DELETE':
             case 'GET':
             case 'HEAD':
-                return Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event));
+                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), false);
             default:
-                return Object.assign(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), Payload.fromBody(event));
+                return new Payload(Object.assign(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), Payload.fromBody(event)), false);
         }
     }
     /**
@@ -41,10 +41,18 @@ class Payload {
         logger_1.Logger.internal.verbose('Checking event.body for nulls!');
         if (!event.body) {
             logger_1.Logger.internal.verbose('event.body is null, returning empty object!');
-            return {};
+            return new Payload();
         }
         logger_1.Logger.internal.verbose('Parsing data and returning values!');
-        return JSON.parse(event.body);
+        try {
+            const parsedBody = JSON.parse(event.body);
+            return new Payload(parsedBody);
+        }
+        catch (e) {
+            const message = 'Failed to parse "body" to JSON!';
+            logger_1.Logger.internal.error(433, message);
+            throw new Error(message);
+        }
     }
     /**
      * @description Maps all items from `event.pathParameters` to an object, it also attempts to parse the items to its correct type. Since `event.pathParameters` is an object of type `{[key: string]: string}` where all values are string. This methods attempts to identify the type of the value and parse it.
@@ -54,7 +62,7 @@ class Payload {
      */
     static fromPath(event) {
         logger_1.Logger.internal.verbose('Payload.fromPathParams');
-        return Payload.determineTypes(event.pathParameters);
+        return new Payload(event.pathParameters);
     }
     /**
      * @description Maps all items from `event.queryStringParameters` to an object, it also attempts to parse the items to its correct type. Since `event.queryStringParameters` is an object of type `{[key: string]: string}` where all values are string. This methods attempts to identify the type of the value and parse it.
@@ -64,45 +72,47 @@ class Payload {
      */
     static fromQueryParams(event) {
         logger_1.Logger.internal.verbose('Payload.fromQueryParams');
-        return Payload.determineTypes(event.queryStringParameters);
+        return new Payload(event.queryStringParameters);
     }
-    static determineTypes(payload) {
-        var _a;
+    constructor(payload, tryToResolveTypes = true) {
         logger_1.Logger.internal.verbose('Payload.determineTypes');
         logger_1.Logger.internal.verbose('Checking payload for nulls');
         if (!payload) {
             logger_1.Logger.internal.verbose('Payload is null returning empty object!');
-            return {};
+            return this;
         }
-        logger_1.Logger.internal.verbose('Creating object to add the data');
-        const result = {};
         logger_1.Logger.internal.verbose('Adding data to object');
         for (const key in payload) {
             if (payload.hasOwnProperty(key)) {
                 logger_1.Logger.internal.verbose('Adding new data!');
-                result[key] = Payload.determineType((_a = payload[key]) !== null && _a !== void 0 ? _a : null);
+                if (tryToResolveTypes) {
+                    this[key] = this.determineType(payload[key]);
+                }
+                else {
+                    this[key] = payload[key];
+                }
             }
         }
-        logger_1.Logger.internal.verbose('Returning mapped data!');
-        return result;
     }
-    static determineType(value) {
+    determineType(value) {
         logger_1.Logger.internal.verbose('Payload.determineType');
+        logger_1.Logger.internal.debug(value);
         logger_1.Logger.internal.verbose('Checking null');
-        if (value === 'null' || value === null) {
+        if (value === 'null' || value === null || value === undefined) {
             return null;
         }
         logger_1.Logger.internal.verbose('Checking undefined');
         if (value === 'undefined') {
             return undefined;
         }
+        const decodedValue = decodeURIComponent(value);
         try {
             logger_1.Logger.internal.verbose('Trying to parse!');
-            return JSON.parse(value);
+            return JSON.parse(decodedValue);
         }
         catch (e) {
             logger_1.Logger.internal.verbose('Failed to parse, returning as a string!');
-            return value;
+            return decodedValue;
         }
     }
 }
