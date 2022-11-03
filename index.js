@@ -49,6 +49,7 @@ exports.getEnvironmentVariable = getEnvironmentVariable;
  * ```
  */
 function createLambda(handler, errorHandler) {
+    logger_1.Logger.setConfig({ globalTrace: true });
     logger_1.Logger.internal.verbose('createLambda');
     return (event, context, callback) => __awaiter(this, void 0, void 0, function* () {
         var _a;
