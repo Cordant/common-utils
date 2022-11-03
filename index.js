@@ -65,6 +65,7 @@ function createLambda(handler, errorHandler) {
             return yield handler(event, context, callback);
         }
         catch (error) {
+            hasError = true;
             logger_1.Logger.internal.verbose('An error occurred when calling handler!');
             if (errorHandler) {
                 logger_1.Logger.internal.verbose('Handling error using errorHandler callback!');
@@ -72,13 +73,11 @@ function createLambda(handler, errorHandler) {
                     return yield errorHandler(error);
                 }
                 catch (err) {
-                    hasError = true;
                     logger_1.Logger.internal.warning('Trying to call errorHandler failed! Returning a generic error!');
                     logger_1.Logger.internal.error(err);
                     return api_1.Responses.internalError('An unexpected error occurred!', error);
                 }
             }
-            hasError = true;
             logger_1.Logger.internal.warning('No errorHandler was passed, generating default error response!');
             logger_1.Logger.internal.verbose('Checking if error was thrown by AWS!');
             if ((_a = error === null || error === void 0 ? void 0 : error.$metadata) === null || _a === void 0 ? void 0 : _a.httpStatusCode) {
@@ -90,6 +89,8 @@ function createLambda(handler, errorHandler) {
         }
         finally {
             logger_1.Logger.log('END');
+            // If there was an error, we want to log the trace.
+            // Doing it here to ensure that the trace is the last thing logged.
             if (hasError && logger_1.Logger.getInstance().shouldTraceGlobally) {
                 logger_1.Logger.logTrace();
             }
