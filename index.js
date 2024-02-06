@@ -68,6 +68,11 @@ function createLambda(handler, errorHandler) {
         catch (error) {
             hasError = true;
             logger_1.Logger.internal.verbose('An error occurred when calling handler!');
+            if (error instanceof api_1.Responses) {
+                logger_1.Logger.internal.verbose('Returning error response!');
+                logger_1.Logger.internal.error(error);
+                return error;
+            }
             if (errorHandler) {
                 logger_1.Logger.internal.verbose('Handling error using errorHandler callback!');
                 try {
@@ -76,6 +81,9 @@ function createLambda(handler, errorHandler) {
                 catch (err) {
                     logger_1.Logger.internal.warning('Trying to call errorHandler failed! Returning a generic error!');
                     logger_1.Logger.internal.error(err);
+                    if (err instanceof api_1.Responses) {
+                        return err;
+                    }
                     return api_1.Responses.internalError('An unexpected error occurred!', error);
                 }
             }
