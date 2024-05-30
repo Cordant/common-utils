@@ -89,6 +89,21 @@ class Database {
         });
     }
     /**
+     * @description
+     * Executes a query that can return any number of rows.
+     *
+     * - When no rows are returned, it resolves with an empty array.
+     * - When 1 or more rows are returned, it resolves with the array of rows.
+     */
+    static any(query, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            index_2.Logger.internal.verbose('Database.any');
+            const database = yield Database.connect(Object.assign(Object.assign({}, options), { isReadOnly: false }));
+            index_2.Logger.internal.verbose('Calling any');
+            return database.any(query);
+        });
+    }
+    /**
      * @description Retrieves the connection string from the SSM and tries to open a connection if there isn't one open for the specified connection string.
      * @private
      */
@@ -146,10 +161,14 @@ class Database {
     static storedProcedure(db, payload, functionName, fieldsToPass, options) {
         return __awaiter(this, void 0, void 0, function* () {
             index_2.Logger.internal.verbose('Database.storedProcedure');
-            index_2.Logger.internal.verbose('Calling Database.getUserId!');
-            const userId = Database.getUserId(payload, options);
             index_2.Logger.internal.verbose('Building array of values to pass to function!');
-            const params = [userId];
+            const params = [];
+            if (!(options === null || options === void 0 ? void 0 : options.skipUserId)) {
+                index_2.Logger.internal.verbose('Calling Database.getUserId!');
+                const userId = Database.getUserId(payload, options);
+                index_2.Logger.internal.verbose('Adding user id to the params!');
+                params.push(userId);
+            }
             for (let i = 0; i < fieldsToPass.length; i++) {
                 params.push(payload[fieldsToPass[i]]);
             }

@@ -22,6 +22,12 @@ export interface ProcessOptions {
      * @description Pass this value if you wish to modify the UserId that will be calling the database with. This option is required if the call isn't coming via an API authenticate with a Cognito User Pool.
      */
     userId?: UserId;
+    /**
+     * @description Pass this value if you wish to skip the user id being passed to the stored procedure.
+     * This is useful when the stored procedure doesn't require a user id.
+     * This is ignored when using `Database.any`
+     */
+    skipUserId?: boolean;
 }
 export interface ProcessPayload {
     /**
@@ -78,6 +84,14 @@ export declare class Database {
      * @param options Optional parameters that can be used to modify the default values.
      */
     static processReadOnly(payload: ProcessPayload, functionName: string, fieldsToPass: string[], options?: ProcessOptions): Promise<any>;
+    /**
+     * @description
+     * Executes a query that can return any number of rows.
+     *
+     * - When no rows are returned, it resolves with an empty array.
+     * - When 1 or more rows are returned, it resolves with the array of rows.
+     */
+    static any(query: string, options: ProcessOptions): Promise<any[]>;
     /**
      * @description Retrieves the connection string from the SSM and tries to open a connection if there isn't one open for the specified connection string.
      * @private
