@@ -1,12 +1,11 @@
-import { APIGatewayEvent } from './api/api-gateway.interface';
-import { ProcessPayload } from './database';
 import { Responses } from './api';
-export declare type LambdaEvent = APIGatewayEvent & ProcessPayload;
-export declare type Callback<TResult = any> = (error?: Error | string | null, result?: TResult) => void;
-export declare type Handler<TEvent = LambdaEvent, TResponse = Responses> = (event: TEvent, context: object, callback: Callback<TResponse>) => Promise<TResponse> | TResponse;
-export declare type ErrorHandler<TError = any, TResponse = Responses> = (error: TError) => Promise<TResponse> | TResponse;
+import { APIGatewayProxyEvent, APIGatewayProxyEventV2, Callback, Context } from 'aws-lambda';
+export declare type ErrorHandler<TError = any> = (error: TError) => Promise<Responses> | Responses;
 export declare type EnvironmentVariableName = 'STAGE' | 'DEBUG' | 'VERBOSE' | 'INTERNAL' | 'SENSITIVE' | 'REGION' | 'LOCALHOST_PORT' | string;
 export declare function getEnvironmentVariable(name: EnvironmentVariableName): string | boolean | number | undefined;
+declare type Handler<TEvent = any, TResult = any> = (event: TEvent, context: Context, callback: Callback<TResult>) => Promise<TResult> | TResult;
+export declare type LambdaEvent<TEvent = any> = TEvent | APIGatewayProxyEvent | APIGatewayProxyEventV2;
+declare type LambdaHandler<TEvent = LambdaEvent> = Handler<LambdaEvent<TEvent>, Responses>;
 /**
  * @description Checks for the Warm-Up flag and ensures the function is only called if it not a warm-up call. It also handles any unexpect error.
  *
@@ -16,4 +15,5 @@ export declare function getEnvironmentVariable(name: EnvironmentVariableName): s
  * });
  * ```
  */
-export declare function createLambda<TEvent = LambdaEvent, TOutput = Responses>(handler: Handler<TEvent, TOutput>, errorHandler?: ErrorHandler): Handler<TEvent, TOutput | Responses>;
+export declare function createLambda<TEvent = any, TOutput = Responses>(handler: LambdaHandler<TEvent>, errorHandler?: ErrorHandler, transformer?: (responses: Responses, event: LambdaEvent<TEvent>, context: Context) => Responses): LambdaHandler<TEvent>;
+export {};

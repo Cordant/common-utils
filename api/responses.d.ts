@@ -48,6 +48,6 @@ export declare class Responses {
      */
     static error(statusCode: number, message: string, data?: any, headers?: ResponseHeaders): Responses;
     constructor(statusCode: number, message: string, data?: any, headers?: ResponseHeaders);
-    setCorsHeaders(event: APIGatewayEvent, allowedOrigins: string[], allowedMethods: string[]): Responses;
+    setCorsHeaders(event: APIGatewayEvent, allowedOrigins: string[], allowedMethods: string[], allowedHeaders?: string[]): Responses;
 }
 export {};

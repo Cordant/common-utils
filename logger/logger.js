@@ -1,12 +1,8 @@
 "use strict";
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = exports.LogType = void 0;
 const index_1 = require("../index");
 const status_code_1 = require("./status-code");
-const STAGE = (_b = (_a = process.env.STAGE) !== null && _a !== void 0 ? _a : process.env.stage) !== null && _b !== void 0 ? _b : 'dev';
-const VERBOSE = process.env.VERBOSE === 'true';
-const SENSITIVE = process.env.SENSITIVE === 'true';
 var LogType;
 (function (LogType) {
     LogType["log"] = "LOG";

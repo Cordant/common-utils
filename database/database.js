@@ -16,6 +16,7 @@ exports.Database = void 0;
 const index_1 = require("../ssm/index");
 const index_2 = require("../logger/index");
 const pg_promise_1 = __importDefault(require("pg-promise"));
+const api_gateway_interface_1 = require("../api/api-gateway.interface");
 const pgp = (0, pg_promise_1.default)();
 const DEFAULT_SSM_APP = process.env.APP;
 const DEFAULT_SSM_PARAMETER = process.env.SSM_PARAMETER;
@@ -211,14 +212,29 @@ class Database {
             index_2.Logger.internal.sensitive(`User ID`, options.userId);
             return options.userId;
         }
-        if ((_b = (_a = payload === null || payload === void 0 ? void 0 : payload.requestContext) === null || _a === void 0 ? void 0 : _a.identity) === null || _b === void 0 ? void 0 : _b.cognitoAuthenticationProvider) {
+        if ((0, api_gateway_interface_1.isAPIGatewayEventV1)(payload) && (payload.requestContext.identity.cognitoAuthenticationProvider || payload.requestContext.identity.cognitoIdentityId)) {
             // cognitoAuthenticationProvider = cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxxxxxx,cognito-idp.us-east-1.amazonaws.com/us-east-1_aaaaaaaaa:CognitoSignIn:qqqqqqqq-1111-2222-3333-rrrrrrrrrrrr
-            const authProvider = payload.requestContext.identity.cognitoAuthenticationProvider;
+            const authProvider = (_a = payload.requestContext.identity.cognitoAuthenticationProvider) !== null && _a !== void 0 ? _a : '';
             const parts = authProvider.split(':'); // ['cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxxxxxx,cognito-idp.us-east-1.amazonaws.com/us-east-1_aaaaaaaaa', 'CognitoSignIn', 'qqqqqqqq-1111-2222-3333-rrrrrrrrrrrr']
-            const userPoolUserId = parts[parts.length - 1];
+            const userPoolUserId = parts.pop();
             index_2.Logger.internal.debug('Overriding user id with payload.requestContext.identity.cognitoAuthenticationProvider!');
             index_2.Logger.internal.sensitive('Cognito User ID', userPoolUserId);
+            return userPoolUserId !== null && userPoolUserId !== void 0 ? userPoolUserId : payload.requestContext.identity.cognitoIdentityId;
+        }
+        if ((0, api_gateway_interface_1.isAPIGatewayCognitoAuthorizerEvent)(payload) && payload.requestContext.authorizer.claims.sub) {
+            const userPoolUserId = payload.requestContext.authorizer.claims.sub;
+            index_2.Logger.internal.debug('Overriding user id with payload.requestContext.authorizer.claims.sub!');
+            index_2.Logger.internal.sensitive('Cognito User ID', userPoolUserId);
             return userPoolUserId;
+        }
+        const isContext = (payload) => {
+            var _a;
+            return (_a = payload === null || payload === void 0 ? void 0 : payload.identity) === null || _a === void 0 ? void 0 : _a.cognitoIdentityId;
+        };
+        if (isContext(payload) && ((_b = payload.identity) === null || _b === void 0 ? void 0 : _b.cognitoIdentityId)) {
+            index_2.Logger.internal.debug('Overriding user id with payload.identity.cognitoIdentityId!');
+            index_2.Logger.internal.sensitive('Cognito Identity ID', payload.identity.cognitoIdentityId);
+            return payload.identity.cognitoIdentityId;
         }
         if (payload === null || payload === void 0 ? void 0 : payload.federatedIdentityId) {
             index_2.Logger.internal.debug('Overriding user id with payload.federatedIdentityId!');

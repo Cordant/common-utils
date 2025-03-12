@@ -10,7 +10,7 @@ class StatusCode {
             case 101:
                 return 'Switching Protocols';
             case 102:
-                return 'Processsing';
+                return 'Processing';
             case 103:
                 return 'Early Hints';
             // Successful Responses

@@ -2,10 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Payload = void 0;
 const logger_1 = require("../logger");
+const api_gateway_interface_1 = require("./api-gateway.interface");
 /**
  * @description This class is intended to enforce a standard for API payload.
  */
 class Payload {
+    static getUserId(event) {
+    }
     /**
      * @description Attempts to identify the payload that should be passed to the Database based on the method.
      * The resulting payload is mapped as follows:
@@ -21,7 +24,7 @@ class Payload {
         logger_1.Logger.internal.verbose('Payload.fromMethod');
         logger_1.Logger.internal.verbose('Determining payload from httpMethod!');
         logger_1.Logger.internal.debug('Mapping payload for method:', event.httpMethod);
-        switch (event.httpMethod) {
+        switch ((0, api_gateway_interface_1.getHttpMethod)(event)) {
             case 'PUT':
             case 'POST':
                 return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromBody(event)), false);

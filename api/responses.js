@@ -95,17 +95,17 @@ class Responses {
         logger_1.Logger.internal.error(statusCode, response);
         return response;
     }
-    setCorsHeaders(event, allowedOrigins, allowedMethods) {
-        var _a;
+    setCorsHeaders(event, allowedOrigins, allowedMethods, allowedHeaders = ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent']) {
+        var _a, _b, _c, _d;
         logger_1.Logger.internal.verbose('Responses.getHeadersWithCors');
-        if (!((_a = event === null || event === void 0 ? void 0 : event.headers) === null || _a === void 0 ? void 0 : _a.origin)) {
-            throw new Error('Event is missing headers.origin!');
+        const origin = (_d = (_b = (_a = event === null || event === void 0 ? void 0 : event.headers) === null || _a === void 0 ? void 0 : _a.Origin) !== null && _b !== void 0 ? _b : (_c = event === null || event === void 0 ? void 0 : event.headers) === null || _c === void 0 ? void 0 : _c.origin) !== null && _d !== void 0 ? _d : null;
+        if (!origin) {
+            throw new Error('Event is missing Origin!');
         }
         logger_1.Logger.internal.verbose('Setting default cors parameters!');
-        this.headers['Access-Control-Allow-Headers'] = 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';
+        this.headers['Access-Control-Allow-Headers'] = allowedHeaders.join(', ');
         this.headers['Access-Control-Allow-Methods'] = allowedMethods.join(',');
         logger_1.Logger.internal.verbose('Setting allowed origin!');
-        const origin = event.headers.origin;
         if (allowedOrigins.includes(origin)) {
             logger_1.Logger.internal.verbose('Request is from an allowed origin!');
             this.headers['Access-Control-Allow-Origin'] = origin;
@@ -113,6 +113,11 @@ class Responses {
         else if ((0, index_1.getEnvironmentVariable)('STAGE') === 'dev') {
             logger_1.Logger.internal.verbose(`Current STAGE is dev setting origin to localhost with port ${(0, index_1.getEnvironmentVariable)('LOCALHOST_PORT')}`);
             this.headers['Access-Control-Allow-Origin'] = `http://localhost:${(0, index_1.getEnvironmentVariable)('LOCALHOST_PORT')}`;
+        }
+        else {
+            logger_1.Logger.internal.verbose('Request is from an unknown origin!');
+            // Remove Origin header
+            delete this.headers['Access-Control-Allow-Origin'];
         }
         return this;
     }

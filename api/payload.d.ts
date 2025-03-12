@@ -1,9 +1,10 @@
-import { APIGatewayEvent } from './api-gateway.interface';
+import { APIGatewayEvent } from 'aws-lambda';
 /**
  * @description This class is intended to enforce a standard for API payload.
  */
 export declare class Payload {
     [key: string]: any;
+    static getUserId(event: APIGatewayEvent): void;
     /**
      * @description Attempts to identify the payload that should be passed to the Database based on the method.
      * The resulting payload is mapped as follows:
@@ -36,6 +37,6 @@ export declare class Payload {
     static fromQueryParams(event: APIGatewayEvent): Payload;
     constructor(payload?: {
         [key: string]: any;
-    }, tryToResolveTypes?: boolean);
+    } | null, tryToResolveTypes?: boolean);
     private determineType;
 }

@@ -8,13 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SSM = void 0;
 const client_ssm_1 = require("@aws-sdk/client-ssm");
 const logger_1 = require("../logger");
 const validate_1 = require("../validate");
-const STAGE = (_b = (_a = process.env.STAGE) !== null && _a !== void 0 ? _a : process.env.stage) !== null && _b !== void 0 ? _b : 'dev';
+const index_1 = require("../index");
 const ssmClient = new client_ssm_1.SSMClient({ region: 'eu-west-1' });
 /**
  * @description A helper class to retrieve an SSM parameter based on stages. It ensures that the standard format for the parameter is correct.
@@ -173,7 +172,7 @@ class SSM {
             logger_1.Logger.internal.error(400, 'Argument "parameter" must not start with a "/".');
         }
         logger_1.Logger.internal.verbose('Creating SSM parameter string');
-        const name = `/${app}/${STAGE}/${parameter}`;
+        const name = `/${app}/${(0, index_1.getEnvironmentVariable)('STAGE')}/${parameter}`;
         logger_1.Logger.internal.debug(`SSM Parameter passed ${name}`);
         return name;
     }

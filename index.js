@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createLambda = exports.getEnvironmentVariable = void 0;
 const api_1 = require("./api");
 const logger_1 = require("./logger");
+const smithy_client_1 = require("@aws-sdk/smithy-client");
 function getEnvironmentVariable(name) {
     var _a, _b, _c, _d, _e, _f, _g;
     switch (name) {
@@ -39,6 +40,28 @@ function getEnvironmentVariable(name) {
     }
 }
 exports.getEnvironmentVariable = getEnvironmentVariable;
+function isWarmUp(event) {
+    return !!(event === null || event === void 0 ? void 0 : event.wu);
+}
+function defaultErrorHandler(error) {
+    var _a, _b;
+    logger_1.Logger.internal.warning('No errorHandler was passed, generating default error response!');
+    logger_1.Logger.internal.verbose('Checking if error was thrown by AWS!');
+    if (error instanceof smithy_client_1.ServiceException) {
+        logger_1.Logger.internal.verbose('Creating AWS failed appropriate response object!');
+        return api_1.Responses.error((_a = error.$metadata.httpStatusCode) !== null && _a !== void 0 ? _a : 400, 'This operation failed unexpectedly!', error);
+    }
+    if ((_b = error === null || error === void 0 ? void 0 : error.$metadata) === null || _b === void 0 ? void 0 : _b.httpStatusCode) {
+        logger_1.Logger.internal.verbose('Creating AWS failed appropriate response object!');
+        return api_1.Responses.error(error.$metadata.httpStatusCode, 'This operation failed unexpectedly!', error);
+    }
+    logger_1.Logger.internal.verbose('Creating unknown failed response object!');
+    return api_1.Responses.internalError('This operation failed unexpectedly!', error);
+}
+function defaultTransformer(responses) {
+    logger_1.Logger.internal.verbose('Transforming response!');
+    return responses;
+}
 /**
  * @description Checks for the Warm-Up flag and ensures the function is only called if it not a warm-up call. It also handles any unexpect error.
  *
@@ -48,33 +71,32 @@ exports.getEnvironmentVariable = getEnvironmentVariable;
  * });
  * ```
  */
-function createLambda(handler, errorHandler) {
+function createLambda(handler, errorHandler = defaultErrorHandler, transformer = defaultTransformer) {
     logger_1.Logger.setConfig({ globalTrace: true });
     logger_1.Logger.internal.verbose('createLambda');
     return (event, context, callback) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        logger_1.Logger.internal.verbose('Checking warm up!');
-        if ('wu' in event && event.wu) {
-            logger_1.Logger.log('Function Warm Up called! Skipping calling actual function!');
-            return api_1.Responses.success('Function warmed up successfully!');
-        }
-        logger_1.Logger.internal.verbose('Calling handler and returning it!');
-        let hasError = false;
-        try {
-            logger_1.Logger.resetTrace();
-            logger_1.Logger.log('START');
-            return yield handler(event, context, callback);
-        }
-        catch (error) {
-            hasError = true;
-            logger_1.Logger.internal.verbose('An error occurred when calling handler!');
-            if (error instanceof api_1.Responses) {
-                logger_1.Logger.internal.verbose('Returning error response!');
-                logger_1.Logger.internal.error(error);
-                return error;
+        const internalWrapper = () => __awaiter(this, void 0, void 0, function* () {
+            logger_1.Logger.internal.verbose('Checking warm up!');
+            if (isWarmUp(event) && event.wu) {
+                logger_1.Logger.log('Function Warm Up called! Skipping calling actual function!');
+                return api_1.Responses.success('Function warmed up successfully!');
             }
-            if (errorHandler) {
-                logger_1.Logger.internal.verbose('Handling error using errorHandler callback!');
+            logger_1.Logger.internal.verbose('Calling handler and returning it!');
+            let hasError = false;
+            try {
+                logger_1.Logger.resetTrace();
+                logger_1.Logger.log('START');
+                return yield handler(event, context, callback);
+            }
+            catch (error) {
+                hasError = true;
+                logger_1.Logger.internal.verbose('An error occurred when calling handler!');
+                if (error instanceof api_1.Responses) {
+                    logger_1.Logger.internal.verbose('Returning error response!');
+                    logger_1.Logger.internal.error(error);
+                    return error;
+                }
+                logger_1.Logger.internal.verbose('Handling error using errorHandler!');
                 try {
                     return yield errorHandler(error);
                 }
@@ -87,24 +109,17 @@ function createLambda(handler, errorHandler) {
                     return api_1.Responses.internalError('An unexpected error occurred!', error);
                 }
             }
-            logger_1.Logger.internal.warning('No errorHandler was passed, generating default error response!');
-            logger_1.Logger.internal.verbose('Checking if error was thrown by AWS!');
-            if ((_a = error === null || error === void 0 ? void 0 : error.$metadata) === null || _a === void 0 ? void 0 : _a.httpStatusCode) {
-                logger_1.Logger.internal.verbose('Creating AWS failed appropriate response object!');
-                return api_1.Responses.error(error.$metadata.httpStatusCode, 'This operation failed unexpectedly!', error);
+            finally {
+                logger_1.Logger.log('END');
+                // If there was an error, we want to log the trace.
+                // Doing it here to ensure that the trace is the last thing logged.
+                if (hasError && logger_1.Logger.getInstance().shouldTraceGlobally) {
+                    logger_1.Logger.logTrace();
+                }
             }
-            logger_1.Logger.internal.verbose('Creating unknown failed response object!');
-            return api_1.Responses.internalError('This operation failed unexpectedly!', error);
-        }
-        finally {
-            logger_1.Logger.log('END');
-            // If there was an error, we want to log the trace.
-            // Doing it here to ensure that the trace is the last thing logged.
-            if (hasError && logger_1.Logger.getInstance().shouldTraceGlobally) {
-                logger_1.Logger.logTrace();
-            }
-        }
+        });
+        const response = yield internalWrapper();
+        return transformer(response, event, context);
     });
 }
 exports.createLambda = createLambda;
-;

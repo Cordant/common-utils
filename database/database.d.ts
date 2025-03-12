@@ -1,3 +1,5 @@
+import type { LambdaEvent } from '../index';
+import { Context } from 'aws-lambda';
 export declare type FederatedIdentityId = string;
 /**
  * @example
@@ -126,6 +128,6 @@ export declare class Database {
      * @param options Options to override the userId.
      * @private
      */
-    private static getUserId;
+    static getUserId(payload: LambdaEvent | Context, options?: ProcessOptions): UserId;
     private static isWarmUp;
 }
