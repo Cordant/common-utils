@@ -1,4 +1,5 @@
 import { APIGatewayEvent } from './api-gateway.interface';
+import { Cors } from './cors';
 interface ResponseHeaders {
     [key: string]: string;
 }
@@ -6,6 +7,8 @@ export declare class Responses {
     statusCode: number;
     body: string;
     headers: ResponseHeaders;
+    static DEFAULT_CORS: Cors | null;
+    static setDefaultCors(cors: Cors): void;
     /**
      * @description The request succeeded. The result meaning of "success" depends on the HTTP method:
      *
@@ -48,6 +51,7 @@ export declare class Responses {
      */
     static error(statusCode: number, message: string, data?: any, headers?: ResponseHeaders): Responses;
     constructor(statusCode: number, message: string, data?: any, headers?: ResponseHeaders);
+    setCors(event: APIGatewayEvent, cors: Cors): this;
     setCorsHeaders(event: APIGatewayEvent, allowedOrigins: string[], allowedMethods: string[], allowedHeaders?: string[]): Responses;
 }
 export {};

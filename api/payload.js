@@ -3,12 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Payload = void 0;
 const logger_1 = require("../logger");
 const api_gateway_interface_1 = require("./api-gateway.interface");
+const responses_1 = require("./responses");
 /**
  * @description This class is intended to enforce a standard for API payload.
  */
 class Payload {
-    static getUserId(event) {
-    }
     /**
      * @description Attempts to identify the payload that should be passed to the Database based on the method.
      * The resulting payload is mapped as follows:
@@ -23,17 +22,18 @@ class Payload {
     static fromMethod(event) {
         logger_1.Logger.internal.verbose('Payload.fromMethod');
         logger_1.Logger.internal.verbose('Determining payload from httpMethod!');
-        logger_1.Logger.internal.debug('Mapping payload for method:', event.httpMethod);
-        switch ((0, api_gateway_interface_1.getHttpMethod)(event)) {
+        const method = (0, api_gateway_interface_1.getHttpMethod)(event);
+        logger_1.Logger.internal.debug('Mapping payload for method:', method);
+        switch (method) {
             case 'PUT':
             case 'POST':
-                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromBody(event)), false);
+                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromBody(event)), false).as();
             case 'DELETE':
             case 'GET':
             case 'HEAD':
-                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), false);
+                return new Payload(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), false).as();
             default:
-                return new Payload(Object.assign(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), Payload.fromBody(event)), false);
+                return new Payload(Object.assign(Object.assign(Object.assign({}, Payload.fromPath(event)), Payload.fromQueryParams(event)), Payload.fromBody(event)), false).as();
         }
     }
     /**
@@ -53,8 +53,7 @@ class Payload {
         }
         catch (e) {
             const message = 'Failed to parse "body" to JSON!';
-            logger_1.Logger.internal.error(433, message);
-            throw new Error(message);
+            throw responses_1.Responses.internalError(message);
         }
     }
     /**
@@ -117,6 +116,9 @@ class Payload {
             logger_1.Logger.internal.verbose('Failed to parse, returning as a string!');
             return decodedValue;
         }
+    }
+    as() {
+        return this;
     }
 }
 exports.Payload = Payload;

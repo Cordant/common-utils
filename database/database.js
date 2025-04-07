@@ -48,13 +48,14 @@ class Database {
     static process(payload, functionName, fieldsToPass, options) {
         return __awaiter(this, void 0, void 0, function* () {
             index_2.Logger.internal.verbose('Database.process');
-            if (!Database.isWarmUp(payload)) {
-                index_2.Logger.internal.verbose('Connecting to database!');
-                const database = yield Database.connect(Object.assign(Object.assign({}, options), { isReadOnly: false }));
-                index_2.Logger.internal.verbose('Calling stored procedure!');
-                return Database.storedProcedure(database, payload, functionName, fieldsToPass, options);
+            if (Database.isWarmUp(payload)) {
+                index_2.Logger.internal.log('Function called from Warm Up trigger!');
+                throw new Error('Function called from Warm Up trigger!');
             }
-            index_2.Logger.internal.log('Function called from Warm Up trigger!');
+            index_2.Logger.internal.verbose('Connecting to database!');
+            const database = yield Database.connect(Object.assign(Object.assign({}, options), { isReadOnly: false }));
+            index_2.Logger.internal.verbose('Calling stored procedure!');
+            return Database.storedProcedure(database, payload, functionName, fieldsToPass, options);
         });
     }
     /**
@@ -80,13 +81,14 @@ class Database {
     static processReadOnly(payload, functionName, fieldsToPass, options) {
         return __awaiter(this, void 0, void 0, function* () {
             index_2.Logger.internal.verbose('Database.processReadOnly');
-            if (!Database.isWarmUp(payload)) {
-                index_2.Logger.internal.verbose('Connecting to database!');
-                const database = yield Database.connect(Object.assign(Object.assign({}, options), { isReadOnly: true }));
-                index_2.Logger.internal.verbose('Calling stored procedure!');
-                return Database.storedProcedure(database, payload, functionName, fieldsToPass, options);
+            if (Database.isWarmUp(payload)) {
+                index_2.Logger.internal.log('Function called from Warm Up trigger!');
+                throw new Error('Function called from Warm Up trigger!');
             }
-            index_2.Logger.internal.log('Function called from Warm Up trigger!');
+            index_2.Logger.internal.verbose('Connecting to database!');
+            const database = yield Database.connect(Object.assign(Object.assign({}, options), { isReadOnly: true }));
+            index_2.Logger.internal.verbose('Calling stored procedure!');
+            return Database.storedProcedure(database, payload, functionName, fieldsToPass, options);
         });
     }
     /**
@@ -205,33 +207,29 @@ class Database {
      * @private
      */
     static getUserId(payload, options) {
-        var _a, _b;
+        var _a;
         index_2.Logger.internal.verbose('Database.getUserId');
+        if (options === null || options === void 0 ? void 0 : options.identity) {
+            index_2.Logger.internal.debug('Overriding user id with options.identity!');
+            index_2.Logger.internal.sensitive('Cognito Identity ID', options.identity.cognitoIdentityId);
+            return options.identity.cognitoIdentityId;
+        }
         if (options === null || options === void 0 ? void 0 : options.userId) {
             index_2.Logger.internal.debug('Overriding user id with options.userId!');
             index_2.Logger.internal.sensitive(`User ID`, options.userId);
             return options.userId;
         }
-        if ((0, api_gateway_interface_1.isAPIGatewayEventV1)(payload) && (payload.requestContext.identity.cognitoAuthenticationProvider || payload.requestContext.identity.cognitoIdentityId)) {
-            // cognitoAuthenticationProvider = cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxxxxxx,cognito-idp.us-east-1.amazonaws.com/us-east-1_aaaaaaaaa:CognitoSignIn:qqqqqqqq-1111-2222-3333-rrrrrrrrrrrr
-            const authProvider = (_a = payload.requestContext.identity.cognitoAuthenticationProvider) !== null && _a !== void 0 ? _a : '';
-            const parts = authProvider.split(':'); // ['cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxxxxxx,cognito-idp.us-east-1.amazonaws.com/us-east-1_aaaaaaaaa', 'CognitoSignIn', 'qqqqqqqq-1111-2222-3333-rrrrrrrrrrrr']
-            const userPoolUserId = parts.pop();
-            index_2.Logger.internal.debug('Overriding user id with payload.requestContext.identity.cognitoAuthenticationProvider!');
-            index_2.Logger.internal.sensitive('Cognito User ID', userPoolUserId);
-            return userPoolUserId !== null && userPoolUserId !== void 0 ? userPoolUserId : payload.requestContext.identity.cognitoIdentityId;
-        }
-        if ((0, api_gateway_interface_1.isAPIGatewayCognitoAuthorizerEvent)(payload) && payload.requestContext.authorizer.claims.sub) {
-            const userPoolUserId = payload.requestContext.authorizer.claims.sub;
-            index_2.Logger.internal.debug('Overriding user id with payload.requestContext.authorizer.claims.sub!');
-            index_2.Logger.internal.sensitive('Cognito User ID', userPoolUserId);
-            return userPoolUserId;
+        if ((0, api_gateway_interface_1.isHttpApiEventWithAuthorizer)(payload)) {
+            index_2.Logger.internal.debug('Overriding user id with payload.requestContext.authorizer.lambda.cognitoIdentityId!');
+            const identityId = payload.requestContext.authorizer.lambda.cognitoIdentityId;
+            index_2.Logger.internal.sensitive('Cognito Identity ID', identityId);
+            return identityId;
         }
         const isContext = (payload) => {
             var _a;
             return (_a = payload === null || payload === void 0 ? void 0 : payload.identity) === null || _a === void 0 ? void 0 : _a.cognitoIdentityId;
         };
-        if (isContext(payload) && ((_b = payload.identity) === null || _b === void 0 ? void 0 : _b.cognitoIdentityId)) {
+        if (isContext(payload) && ((_a = payload.identity) === null || _a === void 0 ? void 0 : _a.cognitoIdentityId)) {
             index_2.Logger.internal.debug('Overriding user id with payload.identity.cognitoIdentityId!');
             index_2.Logger.internal.sensitive('Cognito Identity ID', payload.identity.cognitoIdentityId);
             return payload.identity.cognitoIdentityId;
@@ -242,7 +240,7 @@ class Database {
             index_2.Logger.internal.sensitive('Federated Identity ID', payload.federatedIdentityId);
             return payload.federatedIdentityId;
         }
-        const message = 'Unable to determine a user ID! Please ensure that you are calling via an API Gateway authenticated with AWS Cognito or that you have passed the options.userId manually!';
+        const message = 'Unable to determine a user ID! Please ensure that you are calling via an API Gateway authenticated with custom authorizer or that you have passed the options.userId manually!';
         index_2.Logger.internal.error(401, message);
         throw new Error(message);
     }

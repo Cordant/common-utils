@@ -71,7 +71,7 @@ function defaultTransformer(responses) {
  * });
  * ```
  */
-function createLambda(handler, errorHandler = defaultErrorHandler, transformer = defaultTransformer) {
+function createLambda(handler, onError = defaultErrorHandler, transformer = defaultTransformer) {
     logger_1.Logger.setConfig({ globalTrace: true });
     logger_1.Logger.internal.verbose('createLambda');
     return (event, context, callback) => __awaiter(this, void 0, void 0, function* () {
@@ -96,12 +96,12 @@ function createLambda(handler, errorHandler = defaultErrorHandler, transformer =
                     logger_1.Logger.internal.error(error);
                     return error;
                 }
-                logger_1.Logger.internal.verbose('Handling error using errorHandler!');
+                logger_1.Logger.internal.verbose('Handling error using onError!');
                 try {
-                    return yield errorHandler(error);
+                    return yield onError(error);
                 }
                 catch (err) {
-                    logger_1.Logger.internal.warning('Trying to call errorHandler failed! Returning a generic error!');
+                    logger_1.Logger.internal.warning('Trying to call onError failed! Returning a generic error!');
                     logger_1.Logger.internal.error(err);
                     if (err instanceof api_1.Responses) {
                         return err;

@@ -4,24 +4,9 @@ exports.Responses = void 0;
 const index_1 = require("../index");
 const logger_1 = require("../logger");
 class Responses {
-    constructor(statusCode, message, data, headers) {
-        this.headers = {};
-        logger_1.Logger.internal.verbose('Responses.constructor');
-        logger_1.Logger.internal.verbose('Assigning values to class properties!');
-        this.statusCode = statusCode;
-        if (data) {
-            logger_1.Logger.internal.verbose('Adding data parameter to body!');
-            this.body = JSON.stringify({
-                message,
-                data,
-            });
-        }
-        else {
-            this.body = JSON.stringify({ message });
-        }
-        if (headers) {
-            this.headers = headers;
-        }
+    static setDefaultCors(cors) {
+        logger_1.Logger.internal.verbose('Responses.setDefaultCors');
+        Responses.DEFAULT_CORS = cors;
     }
     /**
      * @description The request succeeded. The result meaning of "success" depends on the HTTP method:
@@ -95,7 +80,43 @@ class Responses {
         logger_1.Logger.internal.error(statusCode, response);
         return response;
     }
-    setCorsHeaders(event, allowedOrigins, allowedMethods, allowedHeaders = ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent']) {
+    constructor(statusCode, message, data, headers) {
+        this.headers = {};
+        logger_1.Logger.internal.verbose('Responses.constructor');
+        logger_1.Logger.internal.verbose('Assigning values to class properties!');
+        this.statusCode = statusCode;
+        if (data) {
+            logger_1.Logger.internal.verbose('Adding data parameter to body!');
+            this.body = JSON.stringify({
+                message,
+                data,
+            });
+        }
+        else {
+            this.body = JSON.stringify({ message });
+        }
+        if (headers) {
+            this.headers = headers;
+        }
+    }
+    setCors(event, cors) {
+        var _a;
+        logger_1.Logger.internal.verbose('Responses.setCors');
+        if (cors.isValid(event)) {
+            logger_1.Logger.internal.verbose('Request is from an allowed origin!');
+            this.headers['Access-Control-Allow-Headers'] = cors.allowedHeaders.join(',');
+            this.headers['Access-Control-Allow-Methods'] = cors.allowedMethods.join(',');
+            // Request its valid, so origin is guaranteed.
+            this.headers['Access-Control-Allow-Origin'] = ((_a = event.headers.Origin) !== null && _a !== void 0 ? _a : event.headers.origin);
+        }
+        else {
+            logger_1.Logger.internal.verbose('Request is from an unknown origin!');
+            // Remove Origin header
+            delete this.headers['Access-Control-Allow-Origin'];
+        }
+        return this;
+    }
+    setCorsHeaders(event, allowedOrigins, allowedMethods, allowedHeaders = ['content-type', 'x-amz-date', 'authorization', 'x-api-key', 'x-amz-security-token', 'x-amz-user-agent']) {
         var _a, _b, _c, _d;
         logger_1.Logger.internal.verbose('Responses.getHeadersWithCors');
         const origin = (_d = (_b = (_a = event === null || event === void 0 ? void 0 : event.headers) === null || _a === void 0 ? void 0 : _a.Origin) !== null && _b !== void 0 ? _b : (_c = event === null || event === void 0 ? void 0 : event.headers) === null || _c === void 0 ? void 0 : _c.origin) !== null && _d !== void 0 ? _d : null;
@@ -123,3 +144,4 @@ class Responses {
     }
 }
 exports.Responses = Responses;
+Responses.DEFAULT_CORS = null;

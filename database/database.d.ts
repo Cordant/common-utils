@@ -1,14 +1,15 @@
 import type { LambdaEvent } from '../index';
 import { Context } from 'aws-lambda';
-export declare type FederatedIdentityId = string;
+import { Identity } from '../api';
+export type FederatedIdentityId = string;
 /**
  * @example
  */
-export declare type CognitoUserId = string;
+export type CognitoUserId = string;
 /**
  * @description This is either a user federated identity id or a Cognito User Identity ID
  */
-export declare type UserId = FederatedIdentityId | CognitoUserId;
+export type UserId = FederatedIdentityId | CognitoUserId;
 /**
  * @description Optional parameters that can be used to modify the default values.
  */
@@ -30,6 +31,20 @@ export interface ProcessOptions {
      * This is ignored when using `Database.any`
      */
     skipUserId?: boolean;
+    /**
+     * @description Pass this value if an Identity object exists
+     * This is a simple method that passes the value from Identity.cognitoIdentityId to be used as userId
+     * This is ignored when using `Database.any`
+     *
+     * @example
+     * // instead of
+     * Database.process(event, 'my_stored_procedure', ['my_param'], { userId: 'my_user_id' });
+     * // you can do
+     * Database.process(event, 'my_stored_procedure', ['my_param'], { identity: Identity.fromEvent(event) });
+     * // is the same as
+     * Database.process(event, 'my_stored_procedure', ['my_param'], { userId: Identity.fromEvent(event).cognitoIdentityId });
+     */
+    identity?: Identity;
 }
 export interface ProcessPayload {
     /**
@@ -64,7 +79,7 @@ export declare class Database {
      * @param fieldsToPass The fields from the event that should be passed to the stored procedure. This order of the item in the list must match the order of the stored procedure parameters. Please note that the user id is always passed as the first argument and therefore must not be included on this list.
      * @param options Optional parameters that can be used to modify the default values.
      */
-    static process(payload: ProcessPayload, functionName: string, fieldsToPass: string[], options?: ProcessOptions): Promise<any>;
+    static process<TOutput = any>(payload: ProcessPayload, functionName: string, fieldsToPass: string[], options?: ProcessOptions): Promise<TOutput>;
     /**
      * @description Calls the read only database.
      *
@@ -85,7 +100,7 @@ export declare class Database {
      * @param fieldsToPass The fields from the event that should be passed to the stored procedure. This order of the item in the list must match the order of the stored procedure parameters. Please note that the user id is always passed as the first argument and therefore must not be included on this list.
      * @param options Optional parameters that can be used to modify the default values.
      */
-    static processReadOnly(payload: ProcessPayload, functionName: string, fieldsToPass: string[], options?: ProcessOptions): Promise<any>;
+    static processReadOnly<TOutput = any>(payload: ProcessPayload, functionName: string, fieldsToPass: string[], options?: ProcessOptions): Promise<TOutput>;
     /**
      * @description
      * Executes a query that can return any number of rows.
